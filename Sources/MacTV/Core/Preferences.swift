@@ -28,6 +28,7 @@ final class Preferences: ObservableObject {
         saverPhotos = defaults.string(forKey: Key.saverPhotos)
         dedicatedTVMode = defaults.bool(forKey: Key.dedicatedTVMode)
         preferredTVDisplay = defaults.string(forKey: Key.preferredTVDisplay)
+        homeLayout = defaults.string(forKey: Key.homeLayout) ?? "scroll"
     }
 
     // MARK: Watching
@@ -74,6 +75,9 @@ final class Preferences: ObservableObject {
     /// The display Mac TV moves to; nil picks one automatically.
     @Published var preferredTVDisplay: String? { didSet { save(preferredTVDisplay, Key.preferredTVDisplay) } }
 
+    /// `HomeLayout` raw value: `scroll` or `pages`.
+    @Published var homeLayout: String { didSet { save(homeLayout, Key.homeLayout) } }
+
     private func save(_ value: Any?, _ key: String) {
         if let value { defaults.set(value, forKey: key) } else { defaults.removeObject(forKey: key) }
     }
@@ -94,5 +98,6 @@ final class Preferences: ObservableObject {
         static let saverPhotos = "saverPhotos"
         static let dedicatedTVMode = "dedicatedTVMode"
         static let preferredTVDisplay = "preferredTVDisplay"
+        static let homeLayout = "homeLayout"
     }
 }
