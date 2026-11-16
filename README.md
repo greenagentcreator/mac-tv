@@ -7,7 +7,7 @@
 > **Fork of [Arunprakaash/mac-tv](https://github.com/Arunprakaash/mac-tv).**  
 > This repo ships a few extras on top of upstream while those changes are offered as small pull requests. Prefer the [upstream project](https://github.com/Arunprakaash/mac-tv) for the original releases and issues unless you specifically want this fork’s builds.
 >
-> **In this fork today:** Steam Top Shelf heroes (game art behind focused Steam tiles) · Pairing at launch opt-out (and Settings no longer forces the QR sheet).  
+> **In this fork today:** Steam Top Shelf heroes · Pairing at launch opt-out · `build.sh` keeps the app out of iCloud Documents so Accessibility sticks across rebuilds.  
 > More features may land here as they are finished; each is also sent upstream separately.
 
 ![Home screen](docs/screenshots/home.png)
