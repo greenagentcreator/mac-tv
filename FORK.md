@@ -8,7 +8,7 @@ This fork ships a small set of extras while they are proposed upstream as **one 
 
 - **Steam Top Shelf heroes** — full-bleed store / library art behind a focused Steam game ([upstream PR](https://github.com/Arunprakaash/mac-tv/pull/18))
 - **Pairing at launch** — opt out of the startup QR sheet; opening Settings no longer forces pairing ([upstream PR](https://github.com/Arunprakaash/mac-tv/pull/19))
-- **YouTube ad blocking** — optional “Block YouTube ads” for the built-in player (YouTube / Music only; default on)
+- **YouTube ad blocking** — optional “Block YouTube ads” for the built-in player (YouTube / Music only; default on) ([upstream PR](https://github.com/Arunprakaash/mac-tv/pull/20))
 - **Dev builds outside iCloud** — if the repo lives under Documents, `./build.sh` writes the app to `~/Library/Developer/MacTV/` so Accessibility survives rebuilds (fork-only for now; no upstream PR)
 
 ## How changes move
