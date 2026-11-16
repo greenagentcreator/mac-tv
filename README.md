@@ -1,8 +1,14 @@
 <p align="center"><img src="docs/screenshots/icon.png" width="128" alt="Mac TV icon"></p>
 
-<h1 align="center">Mac TV</h1>
+<h1 align="center">Mac TV <small>(community fork)</small></h1>
 
 <p align="center">Turn a Mac into an Apple TV-style box: a tvOS-style home screen, your streaming apps in their official web players, and your phone as the remote.</p>
+
+> **Fork of [Arunprakaash/mac-tv](https://github.com/Arunprakaash/mac-tv).**  
+> This repo ships a few extras on top of upstream while those changes are offered as small pull requests. Prefer the [upstream project](https://github.com/Arunprakaash/mac-tv) for the original releases and issues unless you specifically want this fork’s builds.
+>
+> **In this fork today:** Steam Top Shelf heroes (game art behind focused Steam tiles) · Pairing at launch opt-out (and Settings no longer forces the QR sheet).  
+> More features may land here as they are finished; each is also sent upstream separately.
 
 ![Home screen](docs/screenshots/home.png)
 
@@ -47,11 +53,13 @@ Mac TV has no account and no servers of its own, and never records what you watc
 
 ## Contributing
 
-Building from source, tests and pull requests: see [CONTRIBUTING.md](CONTRIBUTING.md). Security problems: see [SECURITY.md](SECURITY.md).
+**Upstream:** bug reports and PRs for the original app go to [Arunprakaash/mac-tv](https://github.com/Arunprakaash/mac-tv). Building from source and tests: see [CONTRIBUTING.md](CONTRIBUTING.md). Security: [SECURITY.md](SECURITY.md).
+
+**This fork:** extras are developed one feature per branch and proposed upstream. See [FORK.md](FORK.md).
 
 ## Who makes it
 
-Mac TV is made by Arunprakaash ([LinkedIn](https://www.linkedin.com/in/Arunprakaash)). Questions and bug reports go to [GitHub issues](https://github.com/Arunprakaash/mac-tv/issues).
+Mac TV is made by Arunprakaash ([LinkedIn](https://www.linkedin.com/in/Arunprakaash)). This public fork is maintained by [greenagentcreator](https://github.com/greenagentcreator) and is not the official upstream.
 
 ## License
 
