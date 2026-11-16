@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// App identities, rather than row indices, keep selection on the same app as its position changes.
+/// Pin / earlier / later keep the same app selected so the row moves with it; remove keeps the slot.
 struct AppOrganizer: Equatable {
     enum Action: Int, CaseIterable {
-        case pin, earlier, later
+        case pin, earlier, later, remove
     }
 
     var selectedID: String?
@@ -43,11 +43,11 @@ extension TVController {
             guard !apps.isEmpty else { return }
             let offset: Int
             if case .move(.up) = command { offset = -1 } else { offset = 1 }
-            panel.selectedID = apps[min(max(index + offset, 0), apps.count - 1)].id
-        case .move(.left):
+            panel.selectedID = apps[(index + offset + apps.count) % apps.count].id
+        case .move(.left), .seek(forward: false):
             panel.action = AppOrganizer.Action(rawValue: max(panel.action.rawValue - 1, 0)) ?? .pin
-        case .move(.right):
-            panel.action = AppOrganizer.Action(rawValue: min(panel.action.rawValue + 1, AppOrganizer.Action.allCases.count - 1)) ?? .later
+        case .move(.right), .seek(forward: true):
+            panel.action = AppOrganizer.Action(rawValue: min(panel.action.rawValue + 1, AppOrganizer.Action.allCases.count - 1)) ?? .remove
         case .select:
             guard let id = panel.selectedID else { return }
             activateOrganizerAction(panel.action, for: id)
@@ -59,13 +59,33 @@ extension TVController {
     }
 
     func activateOrganizerAction(_ action: AppOrganizer.Action, for id: String) {
-        guard organizer != nil, arrangedServices.contains(where: { $0.id == id }) else { return }
-        organizer = AppOrganizer(selectedID: id, action: action)
-        switch action {
-        case .pin: setPinned(id, !isPinned(id))
-        case .earlier: moveApp(id, by: -1)
-        case .later: moveApp(id, by: 1)
+        guard organizer != nil, let index = arrangedServices.firstIndex(where: { $0.id == id }) else { return }
+        withAnimation(Motion.navigate) {
+            switch action {
+            case .pin:
+                setPinned(id, !isPinned(id))
+                organizer = AppOrganizer(selectedID: id, action: .pin)
+            case .earlier:
+                moveApp(id, by: -1)
+                organizer = AppOrganizer(selectedID: id, action: .earlier)
+            case .later:
+                moveApp(id, by: 1)
+                organizer = AppOrganizer(selectedID: id, action: .later)
+            case .remove:
+                removeApp(id)
+                selectOrganizerSlot(index, action: .remove)
+            }
         }
+    }
+
+    /// After remove, keep the row number; if that slot is gone, the one above it.
+    private func selectOrganizerSlot(_ index: Int, action: AppOrganizer.Action) {
+        let apps = arrangedServices
+        guard !apps.isEmpty else {
+            organizer = AppOrganizer(selectedID: nil, action: action)
+            return
+        }
+        organizer = AppOrganizer(selectedID: apps[min(index, apps.count - 1)].id, action: action)
     }
 }
 
@@ -91,7 +111,9 @@ struct AppOrganizerSheet: View {
 
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(spacing: 12) {
+                    // VStack (not Lazy): LazyVStack recycles by slot, so pin/move animations look like
+                    // the wrong row sliding while the label updates.
+                    VStack(spacing: 12) {
                         ForEach(Array(apps.enumerated()), id: \.element.id) { index, service in
                             appRow(service, position: index + 1)
                                 .id(service.id)
@@ -102,6 +124,7 @@ struct AppOrganizerSheet: View {
                         }
                     }
                     .padding(8)
+                    .animation(reduceMotion ? nil : Motion.navigate, value: apps.map(\.id))
                 }
                 .frame(height: min(550, max(280, canvas.height - 450)))
                 .onAppear { scrollToSelection(proxy) }
@@ -138,14 +161,9 @@ struct AppOrganizerSheet: View {
             Button {
                 tv.organizer?.selectedID = service.id
             } label: {
-                HStack(spacing: 14) {
-                    Image(systemName: pinned ? "star.fill" : "app")
-                        .font(.system(size: 25)).foregroundStyle(pinned ? .yellow : .white.opacity(0.65))
-                        .frame(width: 30)
-                    Text(service.name).font(.system(size: 27, weight: .semibold)).lineLimit(1)
-                    Spacer(minLength: 0)
-                }
-                .contentShape(Rectangle())
+                Text(service.name).font(.system(size: 27, weight: .semibold)).lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             actionButton(.pin, title: pinned ? "Unpin" : "Pin", symbol: pinned ? "star.slash" : "star",
@@ -154,15 +172,20 @@ struct AppOrganizerSheet: View {
                          enabled: tv.canMoveApp(service.id, by: -1))
             actionButton(.later, title: "Later", symbol: "arrow.down", service: service,
                          enabled: tv.canMoveApp(service.id, by: 1))
+            removeButton(service)
         }
         .padding(.horizontal, 20).padding(.vertical, 18)
-        .background(.white.opacity(selected ? 0.13 : 0.05), in: RoundedRectangle(cornerRadius: 22))
+        .background {
+            RoundedRectangle(cornerRadius: 22)
+                .fill(.white.opacity(selected ? 0.13 : 0.05))
+                .animation(reduceMotion ? nil : Motion.focus, value: selected)
+        }
         .overlay {
             RoundedRectangle(cornerRadius: 22)
                 .strokeBorder(.white.opacity(selected ? 0.5 : 0), lineWidth: 2)
+                .animation(reduceMotion ? nil : Motion.focus, value: selected)
                 .allowsHitTesting(false)
         }
-        .animation(reduceMotion ? nil : Motion.focus, value: selected)
     }
 
     private func actionButton(_ action: AppOrganizer.Action, title: String, symbol: String,
@@ -173,7 +196,7 @@ struct AppOrganizerSheet: View {
         } label: {
             Label(title, systemImage: symbol)
                 .font(.system(size: 22, weight: .semibold))
-                .frame(width: 146, height: 54)
+                .frame(width: 132, height: 54)
                 .foregroundStyle(focused ? .black : .white)
                 .background(focused ? .white : .white.opacity(0.1), in: RoundedRectangle(cornerRadius: 14))
                 .opacity(enabled ? 1 : 0.35)
@@ -181,6 +204,22 @@ struct AppOrganizerSheet: View {
         .buttonStyle(.plain)
         .disabled(!enabled)
         .accessibilityLabel("\(title) \(service.name)")
+        .animation(reduceMotion ? nil : Motion.focus, value: focused)
+    }
+
+    private func removeButton(_ service: Service) -> some View {
+        let focused = tv.organizer?.selectedID == service.id && tv.organizer?.action == .remove
+        return Button {
+            tv.activateOrganizerAction(.remove, for: service.id)
+        } label: {
+            Image(systemName: "trash")
+                .font(.system(size: 22, weight: .semibold))
+                .frame(width: 54, height: 54)
+                .foregroundStyle(focused ? .red : .white)
+                .background(focused ? .white : .white.opacity(0.1), in: RoundedRectangle(cornerRadius: 14))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Remove \(service.name)")
         .animation(reduceMotion ? nil : Motion.focus, value: focused)
     }
 }
