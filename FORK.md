@@ -10,6 +10,7 @@ This fork ships a small set of extras while they are proposed upstream as **one 
 - **Pairing at launch** — opt out of the startup QR sheet; opening Settings no longer forces pairing ([upstream PR](https://github.com/Arunprakaash/mac-tv/pull/19))
 - **YouTube ad blocking** — optional “Block YouTube ads” for the built-in player (YouTube / Music only; default on) ([upstream PR](https://github.com/Arunprakaash/mac-tv/pull/20))
 - **Home layout Scroll vs Pages** — Settings › Apps › Home screen; Arrange Apps wrap / remove focus (on fork `main`; upstream PR not opened yet)
+- **Add App › Suggested** — stay/toggle On TV; Included / Suggested for you / More by region; curated catalogue (on fork `main`; upstream PR not opened yet)
 - **Dev builds outside iCloud** — if the repo lives under Documents, `./build.sh` writes the app to `~/Library/Developer/MacTV/` so Accessibility survives rebuilds (fork-only for now; no upstream PR)
 
 ## How changes move
