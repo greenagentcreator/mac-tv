@@ -88,7 +88,7 @@ final class TopShelfFeed: ObservableObject {
         "videoland.com": "videoland", "npostart.nl": "npostart", "nlziet.nl": "nlziet",
     ]
     /// Series only: sports, talk shows, news and reality TV make poor Top Shelf art.
-    private static let kinds: Set<String> = ["Scripted", "Animation", "Documentary", "Reality"]
+    private static let kinds: Set<String> = ["Scripted", "Animation", "Documentary"]
     private static let perApp = 8
 
     /// Shows whose image is ready, by app id.
@@ -131,9 +131,19 @@ final class TopShelfFeed: ObservableObject {
         return lists.filter { musicApps.contains($0.key) }
     }
 
-    /// Only this app's feed — never borrow Netflix/Prime art for Steam or unrelated tiles.
+    /// An app's own shows; apps with none (websites, Mac apps, games) get the top of every app's.
     func shows(for serviceID: String) -> [Show] {
-        ready[serviceID] ?? []
+        if let own = ready[serviceID], !own.isEmpty { return own }
+        return mix
+    }
+
+    /// Every app's most popular shows taken in turn: the first of each, then the second of each…
+    private var mix: [Show] {
+        let lists = ready.keys.sorted().compactMap { ready[$0]?.filter { !$0.square } }.filter { !$0.isEmpty }
+        let longest = lists.map(\.count).max() ?? 0
+        var seen = Set<Int>()
+        return (0..<longest).flatMap { rank in lists.compactMap { rank < $0.count ? $0[rank] : nil } }
+            .filter { seen.insert($0.id).inserted }
     }
 
     func currentShow(for serviceID: String) -> Show? {
@@ -152,26 +162,10 @@ final class TopShelfFeed: ObservableObject {
         return service.id
     }
 
-
     /// Search routes are used only for services with known search pages, not direct playback.
     func searchURL(for service: Service) -> URL? {
         guard case .web = service.kind, let show = currentShow(for: service) else { return nil }
         return ShelfSearch.url(serviceID: feedID(for: service), query: show.name)
-    }
-
-    /// Markets we curate Suggested locals for — Worldwide must query them or their shelves stay empty.
-    private static let catalogRegions = ["DE", "AT", "CH", "FR", "GB", "US", "CA", "IN", "AU", "JP", "BR", "IT", "NL"]
-
-    static func scheduleQueries(for region: String, macRegion: String? = Locale.current.region?.identifier) -> [String] {
-        if region.isEmpty {
-            var seen = Set<String>()
-            var queries = [""]
-            for code in ["IN", "US", "DE"] + catalogRegions + [macRegion].compactMap({ $0 }) {
-                if seen.insert(code).inserted { queries.append("&country=\(code)") }
-            }
-            return queries
-        }
-        return ["&country=", "&country=\(region)"]
     }
 
     /// Shows the last list straight away, then fetches a fresh one if it's a day old.
