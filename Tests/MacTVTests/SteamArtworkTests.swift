@@ -28,6 +28,13 @@ struct SteamArtworkTests {
         #expect(library.heroFile(for: "user-stardewvalley").lastPathComponent == "user-stardewvalley-hero.jpg")
         #expect(library.iconFile(for: "user-stardewvalley").lastPathComponent == "user-stardewvalley.png")
     }
+
+    @Test
+    func shelfMarkSitsAboveTheDockBand() {
+        #expect(TileArt.shelfDockClearance == 320)
+        #expect(TileArt.shelfMarkCenterY < 0.5)
+        #expect(TileArt.shelfMarkCenterY == (TileArt.shelfSize.height - TileArt.shelfDockClearance) / (2 * TileArt.shelfSize.height))
+    }
 }
 
 @Suite @MainActor
