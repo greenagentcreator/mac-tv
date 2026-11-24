@@ -11,6 +11,8 @@ This fork ships a small set of extras while they are proposed upstream as **one 
 - **YouTube ad blocking** — optional “Block YouTube ads” for the built-in player (YouTube / Music only; default on) ([upstream PR](https://github.com/Arunprakaash/mac-tv/pull/20))
 - **Home layout Scroll vs Pages** — Settings › Apps › Home screen; Arrange Apps wrap / remove focus (on fork `main`; upstream PR not opened yet)
 - **Add App › Suggested** — stay/toggle On TV; Included / Suggested for you / More by region; curated catalogue (on fork `main`; upstream PR not opened yet)
+- **Launch cover** — shared Starting overlay for built-in web, Steam, Mac apps, and external Chromium browsers ([upstream PR](https://github.com/Arunprakaash/mac-tv/pull/32))
+- **Mac app Top Shelf TileArt** — user-added Mac apps fill the Top Shelf with dock-style 5:3 art above the dock ([upstream PR](https://github.com/Arunprakaash/mac-tv/pull/33))
 - **Dev builds outside iCloud** — if the repo lives under Documents, `./build.sh` writes the app to `~/Library/Developer/MacTV/` so Accessibility survives rebuilds (fork-only for now; no upstream PR)
 
 ## How changes move
