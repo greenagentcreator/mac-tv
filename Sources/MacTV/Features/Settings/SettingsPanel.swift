@@ -11,7 +11,7 @@ struct SettingsPanel: Equatable {
     enum Row: Equatable {
         case phoneRemote, pairingCode, controller
         case sleepTimer, autoSkip, autoNext, blockYouTubeAds, playbackCheck, websitePlayer
-        case addApp, arrangeApps, topShelfPreferences, homeLayout, restoreApps
+        case addApp, arrangeApps, topShelfPreferences, homeLayout
         case dedicatedTV, preferredDisplay, launchAtLogin
         case wallpaper, aerialCategory, saverDelay, saverClock, saverPreview
         case audioOutput, feedback
@@ -43,7 +43,6 @@ struct SettingsPanel: Equatable {
             case .phoneRemote, .addApp, .arrangeApps, .topShelfPreferences, .playbackCheck, .audioOutput:
                 "Open"
             case .saverPreview: "Preview"
-            case .restoreApps: "Restore"
             case .screenOff: "Turn Off"
             case .sleepMac: "Sleep"
             case .report: "Copy"
@@ -118,7 +117,7 @@ extension SettingsPanel.Section {
             ? [.wallpaper, .aerialCategory, .saverDelay, .saverClock, .saverPreview]
             : [.wallpaper, .saverDelay, .saverClock, .saverPreview]
         case .sounds: [.audioOutput, .feedback]
-        case .apps: [.addApp, .arrangeApps, .topShelfPreferences, .homeLayout, .restoreApps]
+        case .apps: [.addApp, .arrangeApps, .topShelfPreferences, .homeLayout]
         case .dedicatedTV: [.dedicatedTV, .preferredDisplay, .launchAtLogin]
         case .power: [.keepMacAwake, .lidOverride, .screenOff, .sleepMac]
         case .about: [.version, .update, .autoUpdate, .source, .report] + (Analytics.available ? [.analytics] : [])
@@ -245,9 +244,6 @@ extension TVController {
         case .arrangeApps: openOrganizer()
         case .topShelfPreferences: openTopShelfPreferences()
         case .homeLayout: stepHomeLayout()
-        case .restoreApps:
-            if library.hiddenBuiltInCount == 0 { showToast("No built-in apps have been removed") }
-            else if restoreBuiltInApps() { showToast("Built-in apps are back on the home screen") }
         case .playbackCheck: openPlaybackCheck()
         case .dedicatedTV: setDedicatedTVMode(!dedicatedTVMode)
         case .preferredDisplay: stepTVDisplay(1, wrap: true)
@@ -481,10 +477,6 @@ struct SettingsSheet: View {
         case .homeLayout:
             title("Home screen")
             stepper(tv.homeLayout.title, active: panel.section.rows[panel.row] == .homeLayout)
-        case .restoreApps:
-            title("Restore Built-in Apps")
-            let hidden = tv.library.hiddenBuiltInCount
-            value(hidden == 0 ? "None removed" : "\(hidden) removed")
         case .playbackCheck:
             title("Playback check")
             chevron
