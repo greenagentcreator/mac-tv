@@ -95,6 +95,7 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         webView = web
         tv?.setMode(.player(service))
         tv?.beginLaunchCover(service)
+        tv?.scheduleWebLaunchReveal()
         tv?.clearPointer()
         tv?.displayCoordinator.holdPlaybackKeepAwake(reason: "Watching \(service.name) in Mac TV")
         tv?.bringToFront()
@@ -106,6 +107,7 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
     func beginWebStart() {
         guard case .player(let service) = tv?.mode else { return }
         tv?.beginLaunchCover(service)
+        tv?.scheduleWebLaunchReveal()
     }
 
     func markWebContentReady() {
@@ -149,9 +151,6 @@ final class PlaybackCoordinator: NSObject, ObservableObject {
         config.userContentController.addUserScript(
             WKUserScript(source: AutoPlay.script(skip: tv?.autoSkip ?? true, next: tv?.autoNext ?? true),
                          injectionTime: .atDocumentEnd, forMainFrameOnly: true))
-        if tv?.blockYouTubeAds ?? true {
-            YouTubeAdBlocking.apply(to: config.userContentController)
-        }
         if service.dpadNavigation {
             config.userContentController.addUserScript(
                 WKUserScript(source: SpatialNav.script, injectionTime: .atDocumentStart, forMainFrameOnly: true))

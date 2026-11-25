@@ -102,12 +102,6 @@ final class TVController: NSObject, ObservableObject {
         set { preferences.autoNext = newValue }
     }
 
-    /// Block ads on YouTube / YouTube Music in the built-in website player.
-    var blockYouTubeAds: Bool {
-        get { preferences.blockYouTubeAds }
-        set { preferences.blockYouTubeAds = newValue }
-    }
-
     // MARK: - Forwarded Properties to Coordinators
 
     // Playback
@@ -170,6 +164,9 @@ final class TVController: NSObject, ObservableObject {
         window.level = .screenSaver
         window.orderFrontRegardless()
     }
+
+    /// True while the cover is pinned above other apps (Steam, Mac apps, external browsers).
+    var launchCoverPinned: Bool { launchCoverRestoredLevel != nil }
 
     func unpinLaunchCover() {
         guard let window else {
@@ -339,10 +336,8 @@ final class TVController: NSObject, ObservableObject {
         if case .app(let index) = focus, services.indices.contains(index) { focusedID = services[index].id }
         else { focusedID = shelfID }
         services = library.services()
-        if let index = services.firstIndex(where: { $0.id == shelfID }),
-           homeLayout == .pages || index < columns {
-            shelfAppIndex = index
-        } else { shelfAppIndex = 0 }
+        if let index = services.firstIndex(where: { $0.id == shelfID }), index < columns { shelfAppIndex = index }
+        else { shelfAppIndex = 0 }
         let newIndex = services.firstIndex { $0.id == focusedID }
         switch oldFocus {
         case .app(let index):
@@ -367,15 +362,7 @@ final class TVController: NSObject, ObservableObject {
         guard newFocus != focus else { return }
         focus = newFocus
         tilt = .zero
-        if case .app(let index) = newFocus, homeLayout == .pages || index < columns {
-            shelfAppIndex = index
-        }
-    }
-
-    func stepHomeLayout(forward: Bool = true) {
-        let all = HomeLayout.allCases
-        let index = all.firstIndex(of: homeLayout) ?? 0
-        homeLayout = all[(index + (forward ? 1 : all.count - 1)) % all.count]
+        if case .app(let index) = newFocus, index < columns { shelfAppIndex = index }
     }
 
     private func handleInLauncher(_ command: RemoteCommand) {
@@ -417,12 +404,7 @@ final class TVController: NSObject, ObservableObject {
             switch focus {
             case .status: setFocus(shelfCount > 0 ? .shelf(0) : .app(shelfAppIndex))
             case .shelf: setFocus(.app(shelfAppIndex))
-            case .app(let index):
-                if homeLayout == .pages, index >= columns {
-                    setFocus(.app(index % columns))
-                } else if inGrid {
-                    setFocus(.app(0))
-                }
+            case .app: if inGrid { setFocus(.app(0)) }
             }
         case .pointer(let dx, let dy): movePointer(dx: dx, dy: dy)
         case .click: clickPointer()
@@ -498,7 +480,6 @@ final class TVController: NSObject, ObservableObject {
         case .setting(let key, let value):
             if key == "autoSkip" { autoSkip = value }
             if key == "autoNext" { autoNext = value }
-            if key == "blockYouTubeAds" { blockYouTubeAds = value }
             if key == "keepMacAwake" { keepMacAwake = value }
             if key == "lidOverride" { lidOverride = value }
             return
@@ -614,10 +595,11 @@ final class TVController: NSObject, ObservableObject {
                         self.finishGoingHome()
                         return
                     }
-                    // Keep the app hidden under the pinned cover until fullscreen hand-off.
-                    app.hide()
+                    // A Mac app opens its own way (no forced full screen): hand off as soon as it's running.
                     self.steamGamePID = app.processIdentifier
-                    self.handOffExternalLaunch(pid: app.processIdentifier, generation: generation)
+                    app.unhide()
+                    self.activateExternalApp(pid: app.processIdentifier)
+                    self.markLaunchCoverReady()
                 }
             }
         case .steam(let appID):
@@ -692,16 +674,32 @@ final class TVController: NSObject, ObservableObject {
         }
     }
 
-    /// Cover stuck waiting for a game/app — dismiss so Home isn't locked behind Starting…
+    /// Cover stuck waiting for a game/app: dismiss it so Home isn't locked behind Starting…, and show
+    /// Steam, which is probably waiting on the user.
     private func scheduleLaunchCoverTimeout() {
         let generation = launchCancelGeneration
         Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(120))
+            try? await Task.sleep(for: .seconds(45))
             guard let self, self.launchCancelGeneration == generation,
                   let cover = self.launchCover, !cover.ready, !cover.canceling else { return }
-            self.showToast("\(cover.service.name) is taking a while. Press Home to stay here.")
             self.markLaunchCoverReady()
             self.steamWatchUntil = nil
+            if case .steam = cover.service.kind {
+                self.showToast("\(cover.service.name) is still starting. Steam may need you.")
+                self.revealSteamAfterStuckLaunch()
+            } else {
+                self.showToast("\(cover.service.name) is taking a while.")
+            }
+        }
+    }
+
+    /// A website that never finishes loading (some keep fetching) still appears after a while.
+    func scheduleWebLaunchReveal() {
+        let generation = launchCancelGeneration
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(15))
+            guard let self, self.launchCancelGeneration == generation else { return }
+            self.markLaunchCoverReady()
         }
     }
 
