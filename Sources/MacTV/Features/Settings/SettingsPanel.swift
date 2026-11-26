@@ -37,7 +37,8 @@ struct SettingsPanel: Equatable {
             case .autoSkip, .autoNext, .blockYouTubeAds, .saverClock, .feedback, .keepMacAwake, .lidOverride,
                  .analytics, .autoUpdate, .dedicatedTV, .launchAtLogin:
                 "Toggle"
-            case .sleepTimer, .websitePlayer, .homeLayout, .preferredDisplay, .wallpaper, .aerialCategory, .saverDelay:
+            case .sleepTimer, .websitePlayer, .preferredDisplay, .wallpaper, .aerialCategory, .saverDelay,
+                 .homeLayout:
                 // ←→ already says Change; OK advances the same value.
                 "Select"
             case .phoneRemote, .addApp, .arrangeApps, .topShelfPreferences, .playbackCheck, .audioOutput:

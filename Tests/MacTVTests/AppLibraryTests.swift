@@ -242,19 +242,35 @@ struct AppLibraryTests {
     }
 
     @Test
-    func homeDownWrapsToFirstAppInScrollAndPages() throws {
+    func homeLayoutDefaultsToScrollSoPagesStayOff() {
+        let suite = "home-layout-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let prefs = Preferences(defaults: defaults)
+        #expect(prefs.homeLayout == HomeLayout.scroll.rawValue)
+        #expect((HomeLayout(rawValue: prefs.homeLayout) ?? .pages) == .scroll)
+    }
+
+    @Test
+    func homeDownStopsAtTheLastAppAndPagesShowsEachAppsShelf() throws {
         try withFolder { folder in
             let tv = TVController(library: AppLibrary(folder: folder))
+            let saved = tv.homeLayout
+            defer { tv.homeLayout = saved }
             let last = tv.services.count - 1
             tv.homeLayout = .scroll
             tv.setFocus(.app(last))
             tv.moveFocus(.down)
-            #expect(tv.focus == .app(0))
+            #expect(tv.focus == .app(last))
 
             tv.homeLayout = .pages
+            tv.setFocus(.app(0))
             tv.setFocus(.app(last))
             tv.moveFocus(.down)
-            #expect(tv.focus == .app(0))
+            #expect(tv.focus == .app(last))
+            // Pages keeps the dock, so every app's Top Shelf shows, not just the first row's.
+            #expect(!tv.inGrid)
+            #expect(tv.shelfAppIndex == last)
         }
     }
 
