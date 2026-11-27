@@ -275,14 +275,15 @@ struct AppLibraryTests {
     }
 
     @Test
-    func organizerDownWrapsToFirst() throws {
+    func organizerDownStopsAtLast() throws {
         try withFolder { folder in
             let tv = TVController(library: AppLibrary(folder: folder))
             let apps = tv.arrangedServices
+            let lastID = try #require(apps.last?.id)
             tv.openOrganizer()
-            tv.organizer?.selectedID = apps.last?.id
+            tv.organizer?.selectedID = lastID
             tv.handleOrganizer(.move(.down))
-            #expect(tv.organizer?.selectedID == apps.first?.id)
+            #expect(tv.organizer?.selectedID == lastID)
         }
     }
 
