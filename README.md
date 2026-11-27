@@ -7,7 +7,7 @@
 > **Fork of [Arunprakaash/mac-tv](https://github.com/Arunprakaash/mac-tv).**  
 > This repo ships a few extras on top of upstream while those changes are offered as small pull requests. Prefer the [upstream project](https://github.com/Arunprakaash/mac-tv) for the original releases and issues unless you specifically want this fork’s builds.
 >
-> **In this fork today:** Steam Top Shelf heroes · Pairing at launch opt-out · YouTube ad blocking · Home layout Scroll vs Pages · Add App › Suggested (stay/toggle + regional catalogue) · Launch cover · Mac app Top Shelf TileArt · `build.sh` keeps the app out of iCloud Documents so Accessibility sticks across rebuilds.  
+> **In this fork today:** YouTube ad blocking · `build.sh` keeps the app out of iCloud Documents so Accessibility sticks across rebuilds. Everything else listed below that used to be fork-only is now in upstream through v0.26 (Steam heroes, pairing opt-out, Suggested, home layout, launch cover, Mac TileArt, controller haptics, on-screen keyboard, Movies player layer).  
 > More features may land here as they are finished; each is also sent upstream separately.
 
 ![Home screen](docs/screenshots/home.png)

@@ -10,7 +10,7 @@ struct SettingsPanel: Equatable {
     /// One row on a section's page.
     enum Row: Equatable {
         case phoneRemote, pairingCode, controller, keyboardLayout, autoShowKeyboard
-        case sleepTimer, autoSkip, autoNext, blockYouTubeAds, playbackCheck, websitePlayer
+        case sleepTimer, autoSkip, autoNext, playbackCheck, websitePlayer
         case addApp, arrangeApps, topShelfPreferences, homeLayout
         case dedicatedTV, preferredDisplay, launchAtLogin
         case wallpaper, aerialCategory, saverDelay, saverClock, saverPreview
@@ -22,8 +22,7 @@ struct SettingsPanel: Equatable {
         var adjustsWithArrows: Bool {
             switch self {
             case .sleepTimer, .wallpaper, .aerialCategory, .saverDelay, .saverClock, .feedback,
-                 .autoSkip, .autoNext, .blockYouTubeAds, .websitePlayer, .homeLayout,
-                 .keyboardLayout, .autoShowKeyboard,
+                 .autoSkip, .autoNext, .websitePlayer, .homeLayout, .keyboardLayout, .autoShowKeyboard,
                  .dedicatedTV, .preferredDisplay, .launchAtLogin,
                  .keepMacAwake, .lidOverride, .analytics, .autoUpdate:
                 true
@@ -35,7 +34,7 @@ struct SettingsPanel: Equatable {
         /// Verb for the OK / Select hint on this row.
         var okVerb: String {
             switch self {
-            case .autoSkip, .autoNext, .blockYouTubeAds, .saverClock, .feedback, .keepMacAwake, .lidOverride,
+            case .autoSkip, .autoNext, .saverClock, .feedback, .keepMacAwake, .lidOverride,
                  .analytics, .autoUpdate, .dedicatedTV, .launchAtLogin, .autoShowKeyboard:
                 "Toggle"
             case .sleepTimer, .websitePlayer, .preferredDisplay, .wallpaper, .aerialCategory, .saverDelay,
@@ -114,7 +113,7 @@ extension SettingsPanel.Section {
     @MainActor var rows: [SettingsPanel.Row] {
         switch self {
         case .remotes: [.phoneRemote, .pairingCode, .controller, .keyboardLayout, .autoShowKeyboard]
-        case .watching: [.sleepTimer, .autoSkip, .autoNext, .blockYouTubeAds, .playbackCheck, .websitePlayer]
+        case .watching: [.sleepTimer, .autoSkip, .autoNext, .playbackCheck, .websitePlayer]
         case .screenSaver: ScreenSaverSettings.wallpaper == .aerials && !Aerials.categories.isEmpty
             ? [.wallpaper, .aerialCategory, .saverDelay, .saverClock, .saverPreview]
             : [.wallpaper, .saverDelay, .saverClock, .saverPreview]
@@ -230,7 +229,6 @@ extension TVController {
         case .feedback: feedback.enabled = forward
         case .autoSkip: autoSkip = forward
         case .autoNext: autoNext = forward
-        case .blockYouTubeAds: blockYouTubeAds = forward
         case .homeLayout: stepHomeLayout(forward: forward)
         case .keepMacAwake: keepMacAwake = forward
         case .lidOverride: lidOverride = forward
@@ -263,7 +261,6 @@ extension TVController {
         case .autoShowKeyboard: preferences.autoShowOnScreenKeyboard.toggle()
         case .autoSkip: autoSkip.toggle()
         case .autoNext: autoNext.toggle()
-        case .blockYouTubeAds: blockYouTubeAds.toggle()
         case .wallpaper:
             if ScreenSaverSettings.wallpaper == .photos { ScreenSaverSettings.choosePhotosFolder() } else { ScreenSaverSettings.step(1) }
         case .aerialCategory: ScreenSaverSettings.stepAerialCategory(1, wrap: true)
@@ -520,9 +517,6 @@ struct SettingsSheet: View {
         case .autoNext:
             title("Play next episode automatically")
             SettingSwitch(on: tv.autoNext)
-        case .blockYouTubeAds:
-            title("Block YouTube ads")
-            SettingSwitch(on: tv.blockYouTubeAds)
         case .saverDelay:
             title("Start after")
             stepper("\(ScreenSaverSettings.delayMinutes) minutes", active: tv.settings?.section.rows[panel.row] == .saverDelay)
